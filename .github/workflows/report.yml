@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04  # 或 ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check Secrets
         env:
@@ -44,23 +44,17 @@ jobs:
           fi
       - name: Encrypt Log
         env:
-          users: ${{ secrets.USERS }}
-          new_users: ${{ secrets.NEWUSERS }}
           log_password: ${{ secrets.LOGPASS }}
         if: env.log_password != ''
         run: |
           sudo apt-get install -y p7zip-full
-          7z a -p"$LOG_PASSWORD" -mx0 -mhe log.7z output.log
+          7z a -p"$log_password" -mx0 -mhe log.7z output.log
       - name: Upload Log
-        env:
-          users: ${{ secrets.USERS }}
-          new_users: ${{ secrets.NEWUSERS }}
-            log_password: ${{ secrets.ARCHIVE_PASSWORD }}  # 在仓库Secrets中设置密码
         if: env.log_password != ''
-        - uses: actions/upload-artifact@v4  # 目前最新稳定版
+        uses: actions/upload-artifact@v4
         with:
           name: logs
-          path: ${{ github.workspace }}/log.7z
+          path: log.7z
       - name: Delete Log and Session
         run: |
           rm -f output.log
