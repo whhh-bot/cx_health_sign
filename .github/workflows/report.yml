@@ -55,7 +55,7 @@ jobs:
         env:
           users: ${{ secrets.USERS }}
           new_users: ${{ secrets.NEWUSERS }}
-           LOG_PASSWORD: ${{ secrets.ARCHIVE_PASSWORD }}  # 在仓库Secrets中设置密码
+            log_password: ${{ secrets.ARCHIVE_PASSWORD }}  # 在仓库Secrets中设置密码
         if: env.log_password != ''
         - uses: actions/upload-artifact@v4  # 目前最新稳定版
         with:
