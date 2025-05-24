@@ -57,7 +57,7 @@ jobs:
           new_users: ${{ secrets.NEWUSERS }}
           log_password: ${{ secrets.LOGPASS }}
         if: env.log_password != ''
-        uses: actions/upload-artifact@v2
+        - uses: actions/upload-artifact@v4  # 目前最新稳定版
         with:
           name: logs
           path: ${{ github.workspace }}/log.7z
