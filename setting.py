@@ -117,7 +117,7 @@ class GitHub(object):
         self.global_api: dict = {}
         self._check_global_api()
 
-    def _check_new_users(self):
+   def _check_new_users(self):
     _new_users = []
     for index, new_user_info_raw in enumerate(self._new_users_raw, 1):
         key_map = {
@@ -125,31 +125,30 @@ class GitHub(object):
             'pw': 'password',
             'pt': 'post_type',
             'si': 'school_id',
-            'at': 'api_type',  # 需要确保为整数
+            'at': 'api_type',
             'ak': 'api_key'
         }
         
+        # 用户配置位置标识
+        config_location = f"第 {index} 个用户配置: '{new_user_info_raw}'"
         new_user_info = new_user_info_raw.split(',')
         new_user = {}
-        
-        # 添加用户配置位置标识
-        config_location = f"第 {index} 个用户配置: '{new_user_info_raw}'"
         
         for item in new_user_info:
             if '=' not in item:
                 print(f"::warning::忽略无效配置项 '{item}' ({config_location})")
                 continue
-                
-            raw_key, raw_value = item.split('=', 1)  # 防止值中包含等号
+            
+            raw_key, raw_value = item.split('=', 1)
             key = key_map.get(raw_key.strip())
             
             if not key:
                 print(f"::warning::忽略未知键 '{raw_key}' ({config_location})")
                 continue
-                
+            
             value = raw_value.strip()
             
-            # 特殊处理 api_type
+            # 处理 api_type 类型转换
             if key == 'api_type':
                 try:
                     value = int(value)
@@ -161,7 +160,7 @@ class GitHub(object):
             # 处理 post_type 分割
             elif key == 'post_type':
                 value = [v.strip() for v in value.split('|') if v.strip()]
-                
+            
             new_user[key] = value
         
         # 必需字段验证
@@ -175,6 +174,7 @@ class GitHub(object):
         
         _new_users.append(new_user)
     
+    # 过滤空配置
     self._new_users = [user for user in _new_users if user]
     def _check_users(self):
         _users = []
