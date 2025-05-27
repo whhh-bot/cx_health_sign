@@ -118,33 +118,64 @@ class GitHub(object):
         self._check_global_api()
 
     def _check_new_users(self):
-        _new_users = []
-        for new_user_info_raw in self._new_users_raw:
-            # un=123,pw=456,pt=test,si=789,at=1,ak=5;......
-            key_map = {
-                'un': 'username',
-                'pw': 'password',
-                'pt': 'post_type',
-                'si': 'school_id',
-                'at': 'api_type',
-                'ak': 'api_key'
-            }
-            new_user_info = new_user_info_raw.split(',')
-            new_user = {}
-            for new_user_info_item in new_user_info:
-                if '=' not in new_user_info_item:
-                    continue
-                key, value = new_user_info_item.split('=')
-                key = key_map.get(key, '')
-                value = int(value) if key == 'api_type' else value
-                value = value.split('|') if key == 'post_type' else value
-                if key != '':
-                    new_user[key] = value
-            _new_users.append(new_user)
-        # remove empty user
-        _new_users = [user for user in _new_users if user != {}]
-        self._new_users = _new_users
-
+    _new_users = []
+    for index, new_user_info_raw in enumerate(self._new_users_raw, 1):
+        key_map = {
+            'un': 'username',
+            'pw': 'password',
+            'pt': 'post_type',
+            'si': 'school_id',
+            'at': 'api_type',  # 需要确保为整数
+            'ak': 'api_key'
+        }
+        
+        new_user_info = new_user_info_raw.split(',')
+        new_user = {}
+        
+        # 添加用户配置位置标识
+        config_location = f"第 {index} 个用户配置: '{new_user_info_raw}'"
+        
+        for item in new_user_info:
+            if '=' not in item:
+                print(f"::warning::忽略无效配置项 '{item}' ({config_location})")
+                continue
+                
+            raw_key, raw_value = item.split('=', 1)  # 防止值中包含等号
+            key = key_map.get(raw_key.strip())
+            
+            if not key:
+                print(f"::warning::忽略未知键 '{raw_key}' ({config_location})")
+                continue
+                
+            value = raw_value.strip()
+            
+            # 特殊处理 api_type
+            if key == 'api_type':
+                try:
+                    value = int(value)
+                except ValueError:
+                    raise ValueError(
+                        f"配置错误 ({config_location})\n"
+                        f"API类型(api_type)必须是整数，但收到: '{raw_value}'"
+                    )
+            # 处理 post_type 分割
+            elif key == 'post_type':
+                value = [v.strip() for v in value.split('|') if v.strip()]
+                
+            new_user[key] = value
+        
+        # 必需字段验证
+        required_fields = ['username', 'password', 'api_type']
+        for field in required_fields:
+            if field not in new_user:
+                raise ValueError(
+                    f"配置缺失 ({config_location})\n"
+                    f"缺少必需字段: '{field}'"
+                )
+        
+        _new_users.append(new_user)
+    
+    self._new_users = [user for user in _new_users if user]
     def _check_users(self):
         _users = []
         for user_info_raw in self._users_raw:
